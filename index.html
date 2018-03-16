@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="./Sky.js"></script>
+    <script src="./Land.js"></script>
+    <script src="./Pipe.js"></script>
+    <script src="./Bird.js"></script>
+    <style>
+        #canvas {
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+<canvas width='800' height='600' id='canvas'></canvas>
+<script>
+    var canvas = document.getElementById('canvas');
+    var context = canvas.getContext('2d');
+
+    //1. 加载所有的图片资源
+    var birdsImg = new Image();
+    birdsImg.src = "../img/birds.png";
+
+    var landImg = new Image();
+    landImg.src = "../img/land.png";
+
+    var skyImg = new Image();
+    skyImg.src = "../img/sky.png";
+
+    var pipe0Img = new Image();
+    pipe0Img.src = "../img/pipe0.png";
+
+    var pipe1Img = new Image();
+    pipe1Img.src = "../img/pipe1.png";
+
+    var imgsArr = [birdsImg, landImg, skyImg, pipe0Img, pipe1Img];
+    var count = 0;
+
+    imgsArr.forEach(function(img){
+        img.onload = function() {
+            count += 1;
+            if (count == imgsArr.length) {
+                console.log("所有的图片加载成功");
+
+                var rolesArr = [];
+
+                var bird;
+
+                //创建所有的角色
+                function createRoles() {
+                    //创建天空对象
+                    for (var i = 0; i<2; i++) {
+                        var sky = new Sky({
+                            x: i * canvas.width,
+                            img: skyImg,
+                            canvas: canvas,
+                            context: context,
+                            speed: 2
+                        });
+
+                        rolesArr.push(sky);
+                    }
+
+                    //创建陆地对象
+                    for (var i = 0; i < 4; i++) {
+                        var land = new Land({
+                            x: i * landImg.width,
+                            img: landImg,
+                            canvas: canvas,
+                            context: context,
+                            speed: 2,
+                            y: this.canvas.height - landImg.height
+                        });
+
+                        rolesArr.push(land);
+                    }
+
+                    //创建管道的角色
+                    var gap = (this.canvas.width - 6 * pipe0Img.width) / 5; 
+                    for (var i = 0; i < 6; i++) {
+                        var pipe = new Pipe({
+                            x: i * (pipe1Img.width + gap) + 300,
+                            topImg: pipe1Img,
+                            bottomImg: pipe0Img,
+                            canvas: canvas,
+                            context: context,
+                            speed: 2,
+                            bottom: landImg.height,
+                            gap: gap,
+                            offset: 100
+                        });
+
+                        rolesArr.push(pipe);
+                    }
+
+                    //创建小鸟角色
+                    bird = new Bird({
+                        x: 100, 
+                        y: 100, 
+                        img: birdsImg,
+                        canvas: canvas,
+                        context: context
+                    });
+
+                    rolesArr.push(bird);
+                }
+
+                createRoles();
+
+                // console.log(rolesArr);
+
+                function draw() {
+                    //清空画布
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+
+                    //创建一张玻璃纸
+                    context.beginPath();                    
+
+                    for (var i = 0; i < rolesArr.length; i ++) {
+                        //拿到对象
+                        var role = rolesArr[i];
+                         console.log(role);
+                        role.draw();
+                    }
+
+                    //如果小鸟的x，y， 进入了路径里面的矩形区域，就说明死掉了
+                    if (context.isPointInPath(bird.x, bird.y)) return;
+
+                    // context.stroke();
+
+                    window.requestAnimationFrame(draw);
+
+                    
+                    
+                }
+
+                draw();
+
+                canvas.onclick = function () {
+                    bird.speed = -0.15;
+                }
+            }
+        }
+    });
+    
+</script>
+</body>
+</html>
